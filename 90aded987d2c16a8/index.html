@@ -100,7 +100,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 #news .hl.fade { opacity: 0; }
 #news .at { color: #6c7973; font-size: 13px; margin-left: 10px; }
 
-/* Natt 21–06: mörkt och dämpat */
+/* Mörkt tema från solnedgång till soluppgång */
 .night body, body.night { background: #000; color: #9aa6a1; }
 .night .col, .night .box { background: #111916; border-color: #222d29; }
 .night #c1 { border-color: #3c4a44; }
@@ -120,7 +120,7 @@ ul { list-style: none; margin: 0; padding: 0; }
     <div id="time">--.--</div>
     <div id="date"></div>
     <div id="wx"></div>
-    <div id="brand"><b>Familjen Nordöst</b><span id="built"></span></div>
+    <div id="brand"><b>Familjen Nordöst</b><span id="built"></span><span id="sun" style="display:block"></span></div>
   </div>
   <div id="cols">
     <div class="col" id="c1"><div class="head"><h2 id="h1"></h2><div class="chips" id="f1"></div></div><div class="list" id="l1"></div></div>
@@ -328,11 +328,37 @@ function drawTodos(D0) {
   };
 }
 
-// Klocka, nu/klart-markering och nattläge
+// Soluppgång och solnedgång (Wikipedias soluppgångsekvation), returnerar Date-objekt eller null
+function sunTimes(d, lat, lon) {
+  var rad = Math.PI / 180;
+  var jd = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12) / 864e5 + 2440587.5;
+  var n = Math.round(jd - 2451545.0 + 0.0008);
+  var Js = n - lon / 360;
+  var M = (357.5291 + 0.98560028 * Js) % 360;
+  var C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  var L = (M + C + 180 + 102.9372) % 360;
+  var Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+  var dec = Math.asin(Math.sin(L * rad) * Math.sin(23.4397 * rad));
+  var cosw = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec));
+  if (cosw < -1 || cosw > 1) return null;
+  var w = Math.acos(cosw) / rad;
+  function toDate(j) { return new Date((j - 2440587.5) * 864e5); }
+  return { up: toDate(Jt - w / 360), down: toDate(Jt + w / 360) };
+}
+
+// Mörkt tema mellan solnedgång och soluppgång i Örnsköldsvik
+var SUN = null, SUNDAY = "";
+function isDark(now) {
+  if (SUNDAY !== iso(now)) { SUNDAY = iso(now); SUN = sunTimes(now, 63.291, 18.716); $("sun").innerHTML = SUN ? "Sol " + hm(SUN.up) + "–" + hm(SUN.down) : ""; }
+  if (!SUN) { var h = now.getHours(); return h >= 21 || h < 6; }
+  return now < SUN.up || now >= SUN.down;
+}
+
+// Klocka, nu/klart-markering och mörkt tema
 function tick() {
-  var now = new Date(), t = hm(now), h = now.getHours();
+  var now = new Date(), t = hm(now);
   $("time").innerHTML = t;
-  document.documentElement.className = (h >= 21 || h < 6) ? "night" : "";
+  document.documentElement.className = isDark(now) ? "night" : "";
   var rows = $("l1").getElementsByTagName("div");
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i], s = r.getAttribute("data-s");
