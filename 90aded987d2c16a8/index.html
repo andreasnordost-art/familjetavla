@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Familjen Nordöst</title>
+<meta name="viewport" content="width=1024, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Familjen">
+<meta name="robots" content="noindex, nofollow">
+<!--
+  Tavla för iPad mini 1 (iOS 6, 1024×768 liggande). Byggs av bygg_ipad.js ur Familjeveckan.
+  Bara ES5 och CSS som fanns 2012: ingen flexbox, grid, CSS-variabler, let/const eller pilfunktioner.
+-->
+<style>
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+body { background: #f5f6f3; color: #14211c; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.35; -webkit-text-size-adjust: 100%; -webkit-user-select: none; }
+#app { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+h2, h3 { margin: 0; }
+ul { list-style: none; margin: 0; padding: 0; }
+
+/* Överst: klocka, datum, väder */
+#top { position: absolute; top: 10px; left: 16px; right: 16px; height: 84px; }
+#time { position: absolute; left: 0; top: 0; font-size: 72px; font-weight: bold; letter-spacing: -3px; line-height: 80px; }
+#date { position: absolute; left: 210px; top: 14px; font-size: 17px; color: #3c4a44; width: 300px; }
+#date b { display: block; font-size: 21px; color: #14211c; }
+#date i { font-style: normal; color: #6c7973; font-size: 15px; }
+#wx { position: absolute; left: 450px; top: 6px; width: 420px; }
+.wx { float: left; width: 204px; margin-right: 6px; height: 72px; overflow: hidden; }
+.wx svg { float: left; width: 44px; height: 44px; margin: 4px 8px 0 0; }
+.wx span { float: left; width: 150px; font-size: 14px; color: #3c4a44; }
+.wx small { display: block; font-size: 11px; font-weight: bold; color: #6c7973; text-transform: uppercase; letter-spacing: 1px; }
+.wx b { font-size: 24px; color: #14211c; }
+#brand { position: absolute; right: 0; top: 8px; width: 130px; text-align: right; font-size: 12px; color: #6c7973; }
+#brand b { display: block; font-size: 15px; color: #14211c; }
+
+/* Tre spalter */
+#cols { position: absolute; top: 102px; left: 16px; right: 16px; bottom: 132px; }
+.col { position: absolute; top: 0; bottom: 0; background: #fff; border: 1px solid #e0e5e1; border-radius: 16px; overflow: hidden; }
+#c1 { left: 0; width: 35%; border: 2px solid #1b2a33; }
+#c2 { left: 36%; width: 35%; }
+#c3 { left: 72%; right: 0; background: transparent; border: 0; border-radius: 0; }
+.head { padding: 12px 16px 4px; }
+.head h2 { font-size: 22px; display: inline; }
+.head h2 small { font-size: 14px; font-weight: normal; color: #6c7973; margin-left: 6px; }
+.chips { margin-top: 4px; }
+.chip { display: inline-block; font-size: 12px; font-weight: bold; padding: 2px 7px; border-radius: 6px; background: #edf0ec; color: #3c4a44; margin: 0 4px 2px 0; }
+.chip.lov { background: #fdf1dc; color: #93590a; }
+.chip.red { background: #fbe9e7; color: #c0352b; }
+.list { padding: 0 16px; }
+.ev { position: relative; padding: 9px 0 9px 128px; min-height: 22px; border-top: 1px solid #e0e5e1; }
+.ev.first { border-top: 0; }
+.ev .t { position: absolute; left: 0; top: 9px; width: 52px; font-weight: bold; font-size: 15px; color: #3c4a44; }
+.ev .p { position: absolute; left: 56px; top: 10px; width: 70px; font-size: 12px; font-weight: bold; color: #3c4a44; white-space: nowrap; overflow: hidden; }
+.ev .x { font-weight: bold; font-size: 16px; }
+.ev .x small { display: block; font-weight: normal; color: #6c7973; font-size: 13px; }
+.ev.soft .x { font-weight: normal; color: #3c4a44; }
+.ev.off .x { color: #93590a; }
+.ev.done { opacity: .4; }
+.ev.live { background: #e6ebee; margin: 0 -10px; padding-left: 138px; padding-right: 10px; border-radius: 10px; border-top-color: transparent; }
+.ev.live .t { left: 10px; }
+.ev.live .p { left: 66px; }
+.ev.live .t:after { content: "NU"; display: block; font-size: 11px; letter-spacing: 1px; color: #1b2a33; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 5px; margin-right: 5px; vertical-align: 0; }
+.tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 1px 6px; border-radius: 5px; margin-left: 6px; vertical-align: 2px; }
+.tag.gym { background: #e3f0ea; color: #2e7a5e; }
+.tag.leave { background: #e4ecf7; color: #3a6ea8; }
+.empty { color: #6c7973; font-size: 16px; padding: 12px 0; margin: 0; }
+
+/* Sidospalt */
+.box { background: #fff; border: 1px solid #e0e5e1; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+.box.warn { background: #fdf1dc; border-color: #fdf1dc; }
+.box h3 { font-size: 14px; margin-bottom: 4px; }
+.box h3 span { float: right; font-weight: normal; color: #6c7973; font-size: 12px; }
+.box li { font-size: 14px; padding: 3px 0; }
+.box li span { display: block; font-size: 12px; color: #3c4a44; }
+.box li.todo { padding-left: 26px; position: relative; }
+.box li.todo:before { content: ""; position: absolute; left: 0; top: 3px; width: 16px; height: 16px; border: 2px solid #cbd3ce; border-radius: 4px; }
+.box li.todo.ok { color: #6c7973; text-decoration: line-through; }
+.box li.todo.ok:before { background: #2e7a5e; border-color: #2e7a5e; }
+.sub { font-size: 12px; color: #6c7973; display: block; }
+#el b { color: #2e7a5e; font-size: 17px; }
+
+/* Kommande dagar */
+#strip { position: absolute; left: 16px; right: 16px; bottom: 50px; height: 72px; }
+#strip table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 10px 0; margin: 0 -10px; width: -webkit-calc(100% + 20px); }
+#strip td { vertical-align: top; border-top: 2px solid #cbd3ce; padding-top: 6px; overflow: hidden; white-space: nowrap; }
+#strip .sd b { font-size: 16px; }
+#strip .sd span { color: #6c7973; font-size: 13px; margin-left: 6px; }
+#strip .red b, #strip .red .sd span { color: #c0352b; }
+#strip .sm { font-size: 13px; color: #3c4a44; margin-top: 3px; }
+#strip .sm svg { width: 22px; height: 22px; vertical-align: middle; margin-right: 2px; }
+#strip .sm .chip { font-size: 11px; vertical-align: middle; }
+#strip .sm .dot { vertical-align: middle; margin: 0 2px 0 4px; }
+
+/* Nyhetsrad */
+#news { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 30px; border-top: 1px solid #e0e5e1; padding-top: 8px; white-space: nowrap; overflow: hidden; }
+#news .src { font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: #1b2a33; margin-right: 10px; }
+#news .hl { font-size: 16px; font-weight: bold; -webkit-transition: opacity .4s; }
+#news .hl.fade { opacity: 0; }
+#news .at { color: #6c7973; font-size: 13px; margin-left: 10px; }
+
+/* Natt 21–06: mörkt och dämpat */
+.night body, body.night { background: #000; color: #9aa6a1; }
+.night .col, .night .box { background: #111916; border-color: #222d29; }
+.night #c1 { border-color: #3c4a44; }
+.night #c3 { background: transparent; }
+.night #time, .night #date b, .night .wx b, .night #brand b { color: #9aa6a1; }
+.night .ev, .night #news, .night #strip td { border-color: #222d29; }
+.night #news .hl, .night #news .src { color: #7d8984; }
+.night .ev .x, .night .head h2 { color: #9aa6a1; }
+.night .ev.live { background: #1b2621; }
+.night .box.warn { background: #2a2210; border-color: #2a2210; }
+.night .chip { background: #1b2621; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <div id="time">--.--</div>
+    <div id="date"></div>
+    <div id="wx"></div>
+    <div id="brand"><b>Familjen Nordöst</b><span id="built"></span></div>
+  </div>
+  <div id="cols">
+    <div class="col" id="c1"><div class="head"><h2 id="h1"></h2><div class="chips" id="f1"></div></div><div class="list" id="l1"></div></div>
+    <div class="col" id="c2"><div class="head"><h2 id="h2"></h2><div class="chips" id="f2"></div></div><div class="list" id="l2"></div></div>
+    <div class="col" id="c3">
+      <div class="box warn" id="attn-box"><h3>Att hålla koll på</h3><ul id="attn"></ul></div>
+      <div class="box"><h3>Lunch idag</h3><div id="lunch"></div></div>
+      <div class="box" id="todo-box"><h3>Att göra <span id="todo-n"></span></h3><ul id="todos"></ul></div>
+      <div class="box" id="el-box"><h3>Billigast el idag</h3><div id="el"></div></div>
+      <div class="box" id="tr-box"><h3>Trafik</h3><ul id="tr"></ul></div>
+    </div>
+  </div>
+  <div id="strip"></div>
+  <div id="news"><span class="src" id="nsrc"></span><span class="hl" id="nhl"></span><span class="at" id="nat"></span></div>
+</div>
+<script>
+var T = {"built":"2026-11-01 05.37","days":{"2026-10-19":{"wk":43,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"17.30","w":"matheo","x":"Taekwondo","s":"17.30","e":"18.30","sub":"till 18.30"}],"flags":[],"wx":null,"lunch":{"m":["Köttbullar, potatis, brunsås","Vegobullar, potatis och brunsås"],"v":["Köttbullar, potatis, brunsås"]},"names":[],"red":false},"2026-10-20":{"wk":43,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":null,"lunch":{"m":["Pastasås med kyckling, pasta","Tortellini al limone (citronpasta) V"],"v":["Pastasås med kyckling, pasta"]},"names":[],"red":false},"2026-10-21":{"wk":43,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"18.00","w":"matheo","x":"Taekwondo","s":"18.00","e":"19.00","sub":"till 19.00"}],"flags":[],"wx":{"min":8,"max":9,"rain":0.1,"wind":5,"sym":4},"lunch":{"m":["Fiskburgare, potatismos, bröd, remouladsås","Vegetariska burgare, potatismos, hamburgerbröd och dressing"],"v":["Fiskburgare, potatismos, bröd, remouladsås"]},"names":[],"red":false},"2026-10-22":{"wk":43,"rows":[{"t":"Sista dag","w":"familj","x":"Hämta kvarglömda kläder · Arnäs IF"},{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":{"min":9,"max":9,"rain":0.1,"wind":5,"sym":6},"lunch":{"m":["Kött- och grönsakssoppa, klimp, mjukt bröd och pålägg","Morotssoppa med kokos, mjukt bröd och pålägg"],"v":["Kött- och grönsakssoppa, klimp, mjukt bröd och pålägg"]},"names":[],"red":false},"2026-10-23":{"wk":43,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Hämtas, ingen fritids","s":"13.30","e":"","c":"soft"}],"flags":[],"wx":{"min":9,"max":10,"rain":5.2,"wind":7,"sym":18},"lunch":{"m":["Kebabsplit, klyftpotatis, kebabsås","Falafel, klyftpotatis, kebabsås"],"v":["Kebabsplit, klyftpotatis, kebabsås"]},"names":[],"red":false},"2026-10-24":{"wk":43,"rows":[],"flags":[],"wx":{"min":8,"max":9,"rain":0.1,"wind":7,"sym":4},"lunch":{"m":[],"v":[]},"names":[],"red":false},"2026-10-25":{"wk":43,"rows":[{"t":"19.30","w":"familj","x":"Andreas innebandy · Ängetskolan","s":"19.30","e":"21.00","sub":"till 21.00"}],"flags":[],"wx":{"min":8,"max":10,"rain":8.3,"wind":10,"sym":18},"lunch":{"m":[],"v":[]},"names":[],"red":false},"2026-10-26":{"wk":44,"rows":[{"t":"Heldag","w":"matheo","x":"Studiedagar, ingen skola","c":"off"},{"t":"11.30","w":"malve","x":"Hämta senast, förskolan stänger","s":"11.30","e":"","sub":"Halv planeringsdag"},{"t":"17.30","w":"matheo","x":"Taekwondo","s":"17.30","e":"18.30","sub":"till 18.30"},{"t":"19.10","w":"linnea","x":"Aqua · Bassängen","s":"19.10","e":"19.55","tag":["leave","Åk 18.45"],"sub":"till 19.55"}],"flags":[["lov","Studiedagar"]],"wx":{"min":8,"max":9,"rain":12.8,"wind":9,"sym":18},"lunch":{"m":["Kökets buffé"],"v":["Kökets buffé"]},"names":[],"red":false},"2026-10-27":{"wk":44,"rows":[{"t":"Heldag","w":"matheo","x":"Studiedagar, ingen skola","c":"off"},{"t":"Kväll","w":"familj","x":"Ställ ut soptunnorna (restavfall och matavfall)"}],"flags":[["lov","Studiedagar"]],"wx":{"min":4,"max":9,"rain":0.8,"wind":5,"sym":6},"lunch":{"m":["Potatisbullar, lingonsylt, keso"],"v":["Potatisbullar, lingonsylt, keso"]},"names":[],"red":false},"2026-10-28":{"wk":44,"rows":[{"t":"Heldag","w":"matheo","x":"Studiedagar, ingen skola","c":"off"},{"t":"Senast 06","w":"familj","x":"Sophämtning · restavfall och matavfall"},{"t":"18.00","w":"matheo","x":"Taekwondo","s":"18.00","e":"19.00","sub":"till 19.00"}],"flags":[["lov","Studiedagar"]],"wx":{"min":7,"max":10,"rain":3,"wind":6,"sym":1},"lunch":{"m":["Panerad fisk med potatis och gräddfilssås","Veg. schnitzel, potatis och sås"],"v":["Panerad fisk med potatis och gräddfilssås"]},"names":[],"red":false},"2026-10-29":{"wk":44,"rows":[{"t":"Heldag","w":"matheo","x":"Höstlov, ingen skola","c":"off"},{"t":"08.30","w":"familj","x":"Hjulskifte · Däckservice, Myrängsvägen 19","s":"08.30","e":""},{"t":"09.30","w":"familj","x":"Besiktning · Bilprovningen, Hästmarksvägen 8","s":"09.30","e":""},{"t":"17.40","w":"linnea","x":"Zumba Fitness · Studion","s":"17.40","e":"18.25","tag":["leave","Åk 17.15"],"sub":"till 18.25"}],"flags":[["lov","Höstlov"]],"wx":{"min":6,"max":7,"rain":0.1,"wind":4,"sym":6},"lunch":{"m":["Nudelwok med kyckling, gräddfil med sweetchilisås","Kökets eget val","Nudelwok, Gräddfil med sweetchilisås"],"v":["Nudelwok med kyckling, gräddfil med sweetchilisås"]},"names":[],"red":false},"2026-10-30":{"wk":44,"rows":[{"t":"Heldag","w":"matheo","x":"Höstlov, ingen skola","c":"off"},{"t":"15.00","w":"linnea","x":"Aqua · Bassängen","s":"15.00","e":"15.45","tag":["leave","Åk 14.35"],"sub":"till 15.45"}],"flags":[["lov","Höstlov"]],"wx":{"min":2,"max":5,"rain":0,"wind":2,"sym":1},"lunch":{"m":["Köttfärssås, pasta","Veg. Bolognese/färssås, pasta"],"v":["Köttfärssås, pasta"]},"names":[],"red":false},"2026-10-31":{"wk":44,"rows":[],"flags":[["red","Alla helgons dag · Halloween"]],"wx":{"min":4,"max":5,"rain":0,"wind":1,"sym":4},"lunch":{"m":[],"v":[]},"names":[],"red":true},"2026-11-01":{"wk":44,"rows":[{"t":"19.30","w":"familj","x":"Andreas innebandy · Ängetskolan","s":"19.30","e":"21.00","sub":"till 21.00"}],"flags":[],"wx":{"min":2,"max":6,"rain":2.8,"wind":3,"sym":18},"lunch":{"m":[],"v":[]},"names":[],"red":false},"2026-11-02":{"wk":45,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"17.30","w":"matheo","x":"Taekwondo","s":"17.30","e":"18.30","sub":"till 18.30"}],"flags":[],"wx":{"min":1,"max":5,"rain":0,"wind":3,"sym":1},"lunch":{"m":["Pannbiff, leverbiff, potatis, brunsås","Vegetarisk biff, potatis, brunsås"],"v":["Pannbiff, leverbiff, potatis, brunsås"]},"names":["Tobias"],"red":false},"2026-11-03":{"wk":45,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":{"min":2,"max":7,"rain":0,"wind":5,"sym":2},"lunch":{"m":["Pizza","Elevens val","Vegetarisk pizza"],"v":["Pizza"]},"names":["Hubert","Hugo"],"red":false},"2026-11-04":{"wk":45,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"18.00","w":"matheo","x":"Taekwondo","s":"18.00","e":"19.00","sub":"till 19.00"}],"flags":[],"wx":{"min":8,"max":10,"rain":0,"wind":7,"sym":2},"lunch":{"m":["Tacofisk, potatis","Tacopasta V"],"v":["Tacofisk, potatis"]},"names":["Sverker"],"red":false},"2026-11-05":{"wk":45,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":{"min":5,"max":8,"rain":0,"wind":5,"sym":2},"lunch":{"m":["Kycklingsoppa på farmors vis, topping med färskost och örter, mjukt bröd, pålägg","Turkisk linssoppa, mjukt bröd och ost"],"v":["Kycklingsoppa på farmors vis, topping med färskost och örter, mjukt bröd, pålägg"]},"names":["Eugen","Eugenia"],"red":false},"2026-11-06":{"wk":45,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Hämtas, ingen fritids","s":"13.30","e":"","c":"soft"}],"flags":[["","Gustav Adolfsdagen"]],"wx":{"min":0,"max":4,"rain":0,"wind":5,"sym":1},"lunch":{"m":["Tortellini med ricotta, spenat och tomatsås"],"v":["Tortellini med ricotta, spenat och tomatsås"]},"names":["Gustav Adolf"],"red":false},"2026-11-07":{"wk":45,"rows":[],"flags":[],"wx":{"min":-1,"max":6,"rain":0.1,"wind":5,"sym":3},"lunch":{"m":[],"v":[]},"names":["Ingegerd","Ingela"],"red":false},"2026-11-08":{"wk":45,"rows":[{"t":"19.30","w":"familj","x":"Andreas innebandy · Ängetskolan","s":"19.30","e":"21.00","sub":"till 21.00"}],"flags":[["","Fars dag"]],"wx":{"min":3,"max":5,"rain":0,"wind":4,"sym":3},"lunch":{"m":[],"v":[]},"names":["Vendela"],"red":false},"2026-11-09":{"wk":46,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"17.30","w":"matheo","x":"Taekwondo","s":"17.30","e":"18.30","sub":"till 18.30"}],"flags":[],"wx":{"min":2,"max":4,"rain":0.2,"wind":4,"sym":3},"lunch":{"m":["Chili sin carne med bulgur","Italienska grönsaksbollar serveras med bulgur och tzatsiki"],"v":["Chili sin carne med bulgur"]},"names":["Teodor","Teodora"],"red":false},"2026-11-10":{"wk":46,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"Kväll","w":"familj","x":"Ställ ut soptunnorna (restavfall och matavfall)"}],"flags":[["","Mårtensafton"]],"wx":{"min":2,"max":3,"rain":0.3,"wind":3,"sym":3},"lunch":{"m":["Stekt palt, lingonsylt","Kökets val","Stekt palt V med vegoskinkfärs V, lingonsylt"],"v":["Stekt palt, lingonsylt"]},"names":["Martin","Martina"],"red":false},"2026-11-11":{"wk":46,"rows":[{"t":"Senast 06","w":"familj","x":"Sophämtning · restavfall och matavfall"},{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"18.00","w":"matheo","x":"Taekwondo","s":"18.00","e":"19.00","sub":"till 19.00"}],"flags":[],"wx":{"min":1,"max":3,"rain":0.7,"wind":4,"sym":3},"lunch":{"m":["Fisk med ostcreme, stekt potatis","Grönsaksbiff Caribbean, stekt potatis, tzatziki"],"v":["Fisk med ostcreme, stekt potatis"]},"names":["Mårten"],"red":false},"2026-11-12":{"wk":46,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":null,"lunch":{"m":["Varmkorv kokt, potatismos, gurkmajonnäs","Veg. korv, potatismos, gurkmajonnäs"],"v":["Varmkorv kokt, potatismos, gurkmajonnäs"]},"names":["Konrad","Kurt"],"red":false},"2026-11-13":{"wk":46,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Hämtas, ingen fritids","s":"13.30","e":"","c":"soft"}],"flags":[],"wx":null,"lunch":{"m":["Kebabsplit, libabröd, kall sås","Falafel, libabröd, kall sås"],"v":["Kebabsplit, libabröd, kall sås"]},"names":["Kristian","Krister"],"red":false},"2026-11-14":{"wk":46,"rows":[],"flags":[],"wx":null,"lunch":{"m":[],"v":[]},"names":["Emil","Emilia"],"red":false},"2026-11-15":{"wk":46,"rows":[{"t":"19.30","w":"familj","x":"Andreas innebandy · Ängetskolan","s":"19.30","e":"21.00","sub":"till 21.00"}],"flags":[],"wx":null,"lunch":{"m":[],"v":[]},"names":["Leopold"],"red":false},"2026-11-16":{"wk":47,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"17.30","w":"matheo","x":"Taekwondo","s":"17.30","e":"18.30","sub":"till 18.30"}],"flags":[],"wx":null,"lunch":{"m":["Blodpudding, lingonsylt, keso","Potatisbullar, lingonsylt, keso"],"v":["Blodpudding, lingonsylt, keso"]},"names":["Vibeke","Viveka"],"red":false},"2026-11-17":{"wk":47,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":null,"lunch":{"m":["Veg. Bolognese/färssås, pasta","Italienska grönsaksbollar, pasta och tomatsås"],"v":["Veg. Bolognese/färssås, pasta"]},"names":["Naemi","Naima"],"red":false},"2026-11-18":{"wk":47,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"},{"t":"18.00","w":"matheo","x":"Taekwondo","s":"18.00","e":"19.00","sub":"till 19.00"}],"flags":[],"wx":null,"lunch":{"m":["Panerad fisk med kokt potatis och remouladsås","Vegetarisk schnitzel, potatis, sås"],"v":["Panerad fisk med kokt potatis och remouladsås"]},"names":["Lillemor","Moa"],"red":false},"2026-11-19":{"wk":47,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"13.30","w":"matheo","x":"Fritids","s":"13.30","e":"15.30","sub":"till 15.30","c":"soft"}],"flags":[],"wx":null,"lunch":{"m":["Linsgryta med indiska smaker, gräddfil och bulgur","Morotsbollar, bulgur, gräddfil"],"v":["Linsgryta med indiska smaker, gräddfil och bulgur"]},"names":["Elisabet","Lisbet"],"red":false},"2026-11-20":{"wk":47,"rows":[{"t":"08.05","w":"matheo","x":"Skola","s":"08.05","e":"13.30","tag":["gym","Idrott"],"sub":"till 13.30"},{"t":"09.55","w":"familj","x":"Andreas flyger Umeå → Arlanda (SK 27)","s":"09.55","e":""},{"t":"13.30","w":"matheo","x":"Hämtas, ingen fritids","s":"13.30","e":"","c":"soft"},{"t":"15.00","w":"familj","x":"Incheckning · Clarion Hotel Stockholm, Ringvägen 98","s":"15.00","e":""},{"t":"19.30","w":"familj","x":"Westlife · Avicii Arena (6 biljetter)","s":"19.30","e":""}],"flags":[],"wx":null,"lunch":{"m":["Kycklingburgare, potatismos, bröd, dressing","Vegetariska burgare, potatismos, hamburgerbröd och dressing"],"v":["Kycklingburgare, potatismos, bröd, dressing"]},"names":["Pontus","Marina"],"red":false},"2026-11-21":{"wk":47,"rows":[{"t":"Hela dagen","w":"familj","x":"Andreas i Stockholm"}],"flags":[],"wx":null,"lunch":{"m":[],"v":[]},"names":["Helga","Olga"],"red":false},"2026-11-22":{"wk":47,"rows":[{"t":"16.55","w":"familj","x":"Andreas flyger hem Arlanda → Umeå (SK 34), landar 18.00","s":"16.55","e":""}],"flags":[],"wx":null,"lunch":{"m":[],"v":[]},"names":["Cecilia","Sissela"],"red":false}},"weeks":{"43":{"todos":["Idrottskläder till Matheo: torsdag och fredag","Hämta ev. kvarglömda kläder hos Arnäs IF senast tor 22 okt","Svara på bokat.se om söndagsinnebandyn (inte besvarad)","Avsluta Matheos kallelser från Höglands AIF på laget.se (han har slutat)","Märk glasburkar och ljus med Malves namn (förskolan)"],"alerts":["Kvarglömda kläder hos Arnäs IF"]},"44":{"todos":["Hämta Malve senast 11.30 måndag 26 okt (förskolan stänger på eftermiddagen)","Bestäm om Matheo ska vara på fritids under studiedagarna och höstlovet","Inför besiktningen: varningstriangel, lampor och blinkers"],"alerts":["Bilen torsdag 29 okt"]},"45":{"todos":["Idrottskläder till Matheo: torsdag och fredag"],"alerts":[]},"46":{"todos":["Idrottskläder till Matheo: torsdag och fredag"],"alerts":[]},"47":{"todos":["Idrottskläder till Matheo: torsdag och fredag","Ordna resan till Umeå flygplats och vem som tar barnen 20–22 nov","Hämta Westlife-biljetterna i Stockholm Live-appen (samma mejl som köpet, andreasnordost@gmail.com)"],"alerts":["Andreas i Stockholm 20–22 nov"]}},"closures":[{"who":"matheo","name":"Matheo","label":"Jullov","from":"2026-12-23","to":"2027-01-10","time":""},{"who":"matheo","name":"Matheo","label":"Studiedag","from":"2027-01-11","to":"2027-01-11","time":""},{"who":"matheo","name":"Matheo","label":"Vinterlov","from":"2027-03-08","to":"2027-03-12","time":""},{"who":"matheo","name":"Matheo","label":"Påsklov","from":"2027-03-30","to":"2027-04-02","time":""},{"who":"matheo","name":"Matheo","label":"Lovdag","from":"2027-05-07","to":"2027-05-07","time":""},{"who":"matheo","name":"Matheo","label":"Sommarlov","from":"2027-06-11","to":"2027-06-11","time":""},{"who":"malve","name":"Malve","label":"Sommarstängt","from":"2027-07-12","to":"2027-08-08","time":""}],"el":[{"date":"2026-11-01","from":16,"to":19,"w":15,"avg":21}],"news":[{"src":"SVT Västernorrland","t":"Bokstavshänget ger familjer gemenskap i Sidensjö","at":"2026-11-01T05:30+01:00"},{"src":"SVT Västernorrland","t":"Mittuniversitetet ledande i forskningen kring giftbankar: ”Bör återvinnas”","at":"2026-10-31T05:30+01:00"},{"src":"SVT Västernorrland","t":"Trädet i Sundsvall blev rikskänt genom Svenska nyheter","at":"2026-10-30T12:00+01:00"},{"src":"SVT Västernorrland","t":"Här avgörs trädets framtid – bedöms av flera experter i Sundsvall","at":"2026-10-30T12:00+01:00"},{"src":"Ekot","t":"Klimatförändring får kaffeodlingar att flytta högre upp","at":"2026-11-01T03:00+01:00"},{"src":"Ekot","t":"FBI pekar ut nordkoreanska hackergruppen efter kryptokuppen","at":"2026-11-01T02:30+01:00"},{"src":"Ekot","t":"Molotovcocktail kastades mot polis under protester i Frankrike","at":"2026-10-31T22:32+01:00"},{"src":"Ekot","t":"Tusk uttalar sig om kaoset – skyller på oppositionen","at":"2026-10-31T22:22+01:00"},{"src":"Ekot","t":"Man dog i olycka på gym i Oslo","at":"2026-10-31T21:20+01:00"},{"src":"Ekot","t":"Ian Gillan har drabbats av akut sjukdomsfall","at":"2026-10-31T20:52+01:00"}],"traffic":[]};
+
+var DAYS = ["Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag", "Söndag"];
+var MONTHS = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+var NAMES = { matheo: "Matheo", malve: "Malve", linnea: "Linnéa", familj: "Familjen" };
+var COLORS = { matheo: "#2e7a5e", malve: "#b0477a", linnea: "#3a6ea8", familj: "#b4741a" };
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function two(n) { return (n < 10 ? "0" : "") + n; }
+function iso(d) { return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate()); }
+function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 12); }
+function fmt(d) { return d.getDate() + " " + MONTHS[d.getMonth()]; }
+function wd(d) { return (d.getDay() + 6) % 7; }
+function hm(d) { return two(d.getHours()) + "." + two(d.getMinutes()); }
+function who(k) { return NAMES[k] ? k : "familj"; }
+function dot(k) { return '<i class="dot" style="background:' + COLORS[who(k)] + '"></i>'; }
+function isoWeek(d) {
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+}
+
+// SMHI vädersymboler 1–27 till åtta bilder (samma som Familjeveckan)
+function wxKind(s) {
+  if (s <= 2) return ["sun", "klart"];
+  if (s <= 4) return ["part", "halvklart"];
+  if (s <= 6) return ["cloud", "mulet"];
+  if (s === 7) return ["fog", "dimma"];
+  if (s === 11 || s === 21) return ["storm", "åska"];
+  if ([12, 13, 14, 22, 23, 24].indexOf(s) >= 0) return ["sleet", "snöblandat"];
+  if ([15, 16, 17, 25, 26, 27].indexOf(s) >= 0) return ["snow", "snö"];
+  return ["rain", s === 8 || s === 18 ? "lätt regn" : "regn"];
+}
+function wxIcon(kind) {
+  var SUN = "#d99a00", CL = "#98a39f", RA = "#3a78b5";
+  var sun = '<circle cx="12" cy="12" r="5" fill="' + SUN + '"/><g stroke="' + SUN + '" stroke-width="2" stroke-linecap="round"><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g>';
+  function cloud(y) { return '<path transform="translate(0 ' + y + ')" d="M7 19h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.2A3.4 3.4 0 0 0 7 19z" fill="' + CL + '"/>'; }
+  var drops = '<g stroke="' + RA + '" stroke-width="2" stroke-linecap="round"><path d="M8 20l-1 2.5M12.5 20l-1 2.5M17 20l-1 2.5"/></g>';
+  var flakes = '<g fill="' + RA + '"><circle cx="8" cy="21.5" r="1.3"/><circle cx="12.5" cy="22" r="1.3"/><circle cx="17" cy="21.5" r="1.3"/></g>';
+  var parts = {
+    sun: sun, cloud: cloud(0),
+    part: '<g transform="translate(-3 -4) scale(.8)">' + sun + "</g>" + cloud(1),
+    fog: '<g stroke="' + CL + '" stroke-width="2.2" stroke-linecap="round"><path d="M4 9h16M3 13h18M5 17h14"/></g>',
+    rain: cloud(-3) + drops,
+    storm: cloud(-3) + '<path d="M13 15l-3 5h3l-2 4" stroke="' + SUN + '" stroke-width="2" fill="none" stroke-linejoin="round"/>',
+    sleet: cloud(-3) + '<g stroke="' + RA + '" stroke-width="2" stroke-linecap="round"><path d="M8 20l-1 2.5M17 20l-1 2.5"/></g><circle cx="12.5" cy="21.8" r="1.3" fill="' + RA + '"/>',
+    snow: cloud(-3) + flakes
+  };
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' + parts[kind] + "</svg>";
+}
+
+function store(k, v) {
+  try {
+    if (arguments.length > 1) { localStorage.setItem(k, JSON.stringify(v)); return v; }
+    var s = localStorage.getItem(k); return s ? JSON.parse(s) : null;
+  } catch (e) { return null; }
+}
+
+function chips(flags) {
+  var h = "";
+  for (var i = 0; i < (flags || []).length; i++) h += '<span class="chip ' + esc(flags[i][0]) + '">' + esc(flags[i][1]) + "</span>";
+  return h;
+}
+
+function rowHtml(r, first) {
+  var cls = "ev" + (r.c ? " " + r.c : "") + (first ? " first" : "");
+  var x = esc(r.x);
+  if (r.tag) x += '<span class="tag ' + esc(r.tag[0]) + '">' + esc(r.tag[1]) + "</span>";
+  if (r.sub) x += "<small>" + esc(r.sub) + "</small>";
+  return '<div class="' + cls + '"' + (r.s ? ' data-s="' + esc(r.s) + '" data-e="' + esc(r.e || "") + '"' : "") + ">" +
+    '<span class="t">' + esc(r.t) + "</span>" +
+    '<span class="p">' + dot(r.w) + esc(NAMES[who(r.w)]) + "</span>" +
+    '<span class="x">' + x + "</span></div>";
+}
+
+function fillDay(d, n, label) {
+  var key = iso(d), D = T.days[key];
+  $("h" + n).innerHTML = esc(label) + "<small>" + DAYS[wd(d)].toLowerCase() + " " + fmt(d) + "</small>";
+  if (!D) {
+    $("f" + n).innerHTML = "";
+    $("l" + n).innerHTML = '<p class="empty">Ingen data för den här dagen än. Den kommer när tavlan uppdateras.</p>';
+    return;
+  }
+  $("f" + n).innerHTML = chips(D.flags);
+  var h = "";
+  for (var i = 0; i < D.rows.length; i++) h += rowHtml(D.rows[i], i === 0);
+  $("l" + n).innerHTML = h || '<p class="empty">Inget inplanerat.</p>';
+}
+
+function draw() {
+  var now = new Date(), today = iso(now), tm = addDays(now, 1), D0 = T.days[today];
+  var names = (D0 && D0.names && D0.names.length) ? '<i> · Namnsdag: ' + esc(D0.names.join(", ")) + "</i>" : "";
+  $("date").innerHTML = "<b>" + DAYS[wd(now)] + " " + fmt(now) + "</b>Vecka " + isoWeek(now) + names;
+  $("built").innerHTML = T.built ? "Uppdaterad " + esc(T.built.slice(8, 10).replace(/^0/, "") + "/" + Number(T.built.slice(5, 7)) + " " + T.built.slice(11)) : "";
+
+  fillDay(now, 1, "Idag");
+  fillDay(tm, 2, "Imorgon");
+
+  // Väder idag och imorgon
+  var wh = "", pair = [[today, "Idag"], [iso(tm), "Imorgon"]];
+  for (var k = 0; k < 2; k++) {
+    var dd = T.days[pair[k][0]], w = dd && dd.wx;
+    if (!w) continue;
+    var kind = wxKind(w.sym);
+    wh += '<div class="wx">' + wxIcon(kind[0]) + "<span><small>" + pair[k][1] + "</small><b>" + w.max + "°</b> " + w.min + "° · " + kind[1] +
+      (w.rain >= 0.5 ? ", " + String(w.rain).replace(".", ",") + " mm" : "") + "</span></div>";
+  }
+  $("wx").innerHTML = wh;
+
+  // Att hålla koll på: lov och stängning idag/imorgon och veckans viktiga saker
+  var attn = [], seen = {};
+  for (var j = 0; j < T.closures.length; j++) {
+    var c = T.closures[j];
+    for (var q = 0; q < 2; q++) {
+      var day = q ? iso(tm) : today, dow = wd(q ? tm : now);
+      if (dow < 5 && c.from <= day && day <= c.to) {
+        var txt = c.name + ": " + c.label + (c.time ? ", hämta senast " + c.time : "");
+        if (!seen[txt]) { seen[txt] = 1; attn.push([txt, q ? "Imorgon" : "Idag"]); }
+      }
+    }
+  }
+  var W = D0 && T.weeks[D0.wk];
+  if (W) for (var a = 0; a < W.alerts.length; a++) attn.push([W.alerts[a], "Den här veckan"]);
+  var ah = "";
+  for (var b = 0; b < attn.length; b++) ah += "<li><b>" + esc(attn[b][0]) + "</b><span>" + esc(attn[b][1]) + "</span></li>";
+  $("attn").innerHTML = ah;
+  $("attn-box").style.display = attn.length ? "" : "none";
+
+  // Lunch
+  var m = D0 ? D0.lunch.m : [], v = D0 ? D0.lunch.v : [];
+  var lh = (m.length || v.length) ? "<div>" + esc(m[0] || v[0]) + "</div>" : '<span class="sub">Ingen skollunch idag.</span>';
+  if (v.length && m.length && v[0] !== m[0]) lh += '<span class="sub">Malve: ' + esc(v[0]) + "</span>";
+  if (m.length > 1) lh += '<span class="sub">Även: ' + esc(m.slice(1).join(" · ")) + "</span>";
+  $("lunch").innerHTML = lh;
+
+  // Att göra. Bockarna sparas på iPaden.
+  drawTodos(D0);
+
+  // Elpris idag
+  var E = null;
+  for (var e = 0; e < T.el.length; e++) if (T.el[e].date === today) E = T.el[e];
+  $("el-box").style.display = E ? "" : "none";
+  if (E) $("el").innerHTML = "<b>kl. " + two(E.from) + "–" + two(E.to) + "</b> · snitt " + E.w + " öre <span class=\"sub\">Dagens snitt " + E.avg + " öre/kWh</span>";
+
+  // Trafik, bara när något är på gång
+  var th = "";
+  for (var r = 0; r < T.traffic.length; r++) th += "<li>" + esc(T.traffic[r]) + "</li>";
+  $("tr").innerHTML = th;
+  $("tr-box").style.display = th ? "" : "none";
+
+  // Fem dagar efter imorgon
+  var sh = "<table><tr>";
+  for (var s = 2; s <= 6; s++) {
+    var d = addDays(now, s), key = iso(d), i = wd(d), P = T.days[key];
+    sh += '<td class="' + ((P && P.red) || i === 6 ? "red" : "") + '"><div class="sd"><b>' + DAYS[i] + "</b><span>" + fmt(d) + '</span></div><div class="sm">';
+    if (P) {
+      if (P.wx) sh += wxIcon(wxKind(P.wx.sym)[0]) + "<span>" + P.wx.max + "°</span>";
+      var ppl = {}, order = [];
+      for (var z = 0; z < P.rows.length; z++) {
+        var rw = P.rows[z];
+        if (rw.c === "soft" || rw.c === "off") continue;
+        var wk = who(rw.w);
+        if (!ppl[wk]) { ppl[wk] = 1; order.push(wk); }
+      }
+      for (var o = 0; o < order.length; o++) sh += dot(order[o]);
+      sh += " " + chips(P.flags);
+    } else sh += "Ingen data än";
+    sh += "</div></td>";
+  }
+  $("strip").innerHTML = sh + "</tr></table>";
+  tick();
+}
+
+function drawTodos(D0) {
+  var W = D0 && T.weeks[D0.wk], list = W ? W.todos : [];
+  var KEY = "tavla-v" + (D0 ? D0.wk : 0), done = store(KEY) || {};
+  var h = "";
+  for (var i = 0; i < list.length; i++) h += '<li class="todo' + (done[i] ? " ok" : "") + '" data-i="' + i + '">' + esc(list[i]) + "</li>";
+  $("todos").innerHTML = h;
+  $("todo-box").style.display = list.length ? "" : "none";
+  var n = 0; for (var k in done) if (done[k]) n++;
+  $("todo-n").innerHTML = list.length ? n + " av " + list.length : "";
+  $("todos").onclick = function (ev) {
+    var li = ev.target; while (li && li.nodeName !== "LI") li = li.parentNode;
+    if (!li) return;
+    var ix = li.getAttribute("data-i"); done[ix] = !done[ix]; store(KEY, done); drawTodos(D0);
+  };
+}
+
+// Klocka, nu/klart-markering och nattläge
+function tick() {
+  var now = new Date(), t = hm(now), h = now.getHours();
+  $("time").innerHTML = t;
+  document.documentElement.className = (h >= 21 || h < 6) ? "night" : "";
+  var rows = $("l1").getElementsByTagName("div");
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i], s = r.getAttribute("data-s");
+    if (!s) continue;
+    var e = r.getAttribute("data-e") || "", base = r.className.replace(/ ?(live|done)\b/g, "");
+    var live = s <= t && t < (e || "99"), done = !live && (e || s) < t;
+    r.className = base + (live ? " live" : done ? " done" : "");
+  }
+}
+
+// En nyhetsrubrik i taget, byts var tolfte sekund
+var newsAt = 0;
+function news() {
+  if (!T.news.length) { $("news").style.display = "none"; return; }
+  var n = T.news[newsAt % T.news.length], hl = $("nhl");
+  hl.className = "hl fade";
+  setTimeout(function () {
+    $("nsrc").innerHTML = esc(n.src); hl.innerHTML = esc(n.t);
+    var d = n.at ? n.at.slice(0, 10) : "";
+    $("nat").innerHTML = n.at ? (d === iso(new Date()) ? "" : Number(d.slice(8)) + "/" + Number(d.slice(5, 7)) + " ") + n.at.slice(11, 16).replace(":", ".") : "";
+    hl.className = "hl"; newsAt++;
+  }, newsAt ? 400 : 0);
+}
+
+// Hämta ny version från servern. Laddar bara om när servern svarar, så att tavlan aldrig blir en felsida.
+function refresh() {
+  if (location.protocol === "file:") return;
+  try {
+    var x = new XMLHttpRequest();
+    x.open("GET", location.pathname + "?t=" + new Date().getTime(), true);
+    x.onreadystatechange = function () {
+      if (x.readyState === 4 && x.status === 200 && x.responseText.indexOf("var T = ") > 0) location.reload();
+    };
+    x.send();
+  } catch (e) {}
+}
+
+var loadDay = iso(new Date());
+draw(); news();
+setInterval(function () { if (iso(new Date()) !== loadDay) { loadDay = iso(new Date()); draw(); } else tick(); }, 20000);
+setInterval(news, 12000);
+setInterval(refresh, 30 * 60 * 1000);
+</script>
+</body>
+</html>
