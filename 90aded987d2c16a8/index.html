@@ -141,6 +141,12 @@ ul { list-style: none; margin: 0; padding: 0; }
 .we .dot { width: 7px; height: 7px; margin-right: 3px; }
 .we.soft { color: #6c7973; }
 .we.off { color: #93590a; }
+.wdn { font-size: 11px; color: #6c7973; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wdl { border-top: 1px dashed #cbd3ce; margin-top: 4px; padding: 5px 0; font-size: 11px; line-height: 1.3; color: #3c4a44; }
+.wdl b { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #6c7973; }
+.night .wdl { border-color: #33403b; color: #7d8984; }
+#wk-alert { float: right; margin-right: 72px; font-size: 13px; color: #93590a; background: #fdf1dc; border-radius: 8px; padding: 5px 10px; max-width: 560px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.night #wk-alert { background: #2a2210; }
 </style>
 </head>
 <body>
@@ -163,7 +169,7 @@ ul { list-style: none; margin: 0; padding: 0; }
     </div>
   </div>
   <div id="strip"></div>
-  <div id="week"><div id="wk-head"><h2 id="wk-h"></h2><a href="#" class="nav" id="wk-prev">‹</a><a href="#" class="nav" id="wk-next">›</a></div><div id="wk-grid"></div></div>
+  <div id="week"><div id="wk-head"><span id="wk-alert"></span><h2 id="wk-h"></h2><a href="#" class="nav" id="wk-prev">‹</a><a href="#" class="nav" id="wk-next">›</a></div><div id="wk-grid"></div></div>
   <div id="news"><span class="src" id="nsrc"></span><span class="hl" id="nhl"></span><span class="at" id="nat"></span></div>
 </div>
 <script>
@@ -437,6 +443,7 @@ function drawWeek() {
     h += '<div class="wd' + (key === today ? " today" : "") + ((P && P.red) || i === 6 ? " red" : "") + '" style="left:' + (i * 14.4) + '%">';
     h += '<div class="wdh"><b>' + DAYS[i] + "</b><span>" + fmt(d) + "</span></div>";
     if (!P) { h += '<div class="we soft">Ingen data än</div></div>'; continue; }
+    if (P.names && P.names.length) h += '<div class="wdn">' + esc(P.names.join(", ")) + "</div>";
     h += '<div class="wdw">' + (P.wx ? wxIcon(wxKind(P.wx.sym)[0]) + " " + P.wx.max + "° / " + P.wx.min + "°" : "") + "</div>";
     h += chips(P.flags);
     for (var k = 0; k < P.rows.length; k++) {
@@ -444,9 +451,18 @@ function drawWeek() {
       h += '<div class="we' + (r.c ? " " + r.c : "") + '"><b>' + dot(r.w) + esc(r.t) + (r.e ? "–" + esc(r.e) : "") + "</b>" + esc(r.x) +
         (r.tag ? ' <span class="tag ' + esc(r.tag[0]) + '">' + esc(r.tag[1]) + "</span>" : "") + "</div>";
     }
+    var lm = P.lunch.m, lv = P.lunch.v;
+    if (lm.length || lv.length) {
+      h += '<div class="wdl"><b>Lunch</b>' + esc(lm[0] || lv[0]);
+      if (lm.length && lv.length && lv[0] !== lm[0]) h += "<br>Malve: " + esc(lv[0]);
+      h += "</div>";
+    }
     h += "</div>";
   }
   $("wk-grid").innerHTML = h;
+  var M = T.days[iso(mon)], A = M && T.weeks[M.wk] ? T.weeks[M.wk].alerts : [];
+  $("wk-alert").innerHTML = esc(A.join(" · "));
+  $("wk-alert").style.display = A.length ? "" : "none";
 }
 function setMode(w) {
   weekMode = w; weekOff = 0;
